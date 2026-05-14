@@ -241,6 +241,11 @@ class OpenAICodexResponsesProvider(BaseProvider):
         last_tool_call_id: str | None = None
         tool_call_index = 0
 
+        def _resolve_key(item_id: Any) -> str | None:
+            if isinstance(item_id, str) and item_id:
+                return call_key_by_item_id.get(item_id)
+            return last_tool_call_id
+
         def _reconcile(call_data: dict[str, Any], final_args: str) -> ToolCallDelta | None:
             current_args = call_data["arguments"]
             if final_args.startswith(current_args):
@@ -282,8 +287,6 @@ class OpenAICodexResponsesProvider(BaseProvider):
                         initial_args = item.get("arguments")
                         initial_args_text = initial_args if isinstance(initial_args, str) else ""
                         current_tool_calls[full_id] = {
-                            "id": full_id,
-                            "name": name,
                             "arguments": initial_args_text,
                             "index": tool_call_index,
                         }
@@ -301,11 +304,7 @@ class OpenAICodexResponsesProvider(BaseProvider):
                 delta = event.get("delta")
                 if not isinstance(delta, str):
                     continue
-                event_item_id = event.get("item_id")
-                if isinstance(event_item_id, str) and event_item_id:
-                    call_key = call_key_by_item_id.get(event_item_id)
-                else:
-                    call_key = last_tool_call_id
+                call_key = _resolve_key(event.get("item_id"))
                 if not call_key or call_key not in current_tool_calls:
                     continue
                 call_data = current_tool_calls[call_key]
@@ -316,11 +315,7 @@ class OpenAICodexResponsesProvider(BaseProvider):
                 final_args = event.get("arguments")
                 if not isinstance(final_args, str):
                     continue
-                event_item_id = event.get("item_id")
-                if isinstance(event_item_id, str) and event_item_id:
-                    call_key = call_key_by_item_id.get(event_item_id)
-                else:
-                    call_key = last_tool_call_id
+                call_key = _resolve_key(event.get("item_id"))
                 if not call_key or call_key not in current_tool_calls:
                     continue
                 call_data = current_tool_calls[call_key]
@@ -335,17 +330,7 @@ class OpenAICodexResponsesProvider(BaseProvider):
                 final_args = item.get("arguments")
                 if not isinstance(final_args, str):
                     continue
-                call_id_field = item.get("call_id")
-                item_id_field = item.get("id")
-                composite = None
-                if isinstance(call_id_field, str) and isinstance(item_id_field, str):
-                    composite = f"{call_id_field}|{item_id_field}"
-                if composite is not None and composite in current_tool_calls:
-                    call_key = composite
-                elif isinstance(item_id_field, str) and item_id_field:
-                    call_key = call_key_by_item_id.get(item_id_field)
-                else:
-                    call_key = last_tool_call_id
+                call_key = _resolve_key(item.get("id"))
                 if not call_key or call_key not in current_tool_calls:
                     continue
                 call_data = current_tool_calls[call_key]
