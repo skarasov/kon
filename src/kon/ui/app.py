@@ -167,6 +167,7 @@ class Kon(CommandsMixin, SessionUIMixin, App[None]):
         self._hide_thinking = False
         self._fd_path: str | None = None
         self._selection_mode: SelectionMode | None = None
+        self._shell_tool_counter = 0
 
         self._pending_queue: deque[tuple[str, str]] = deque(maxlen=QueueDisplay.MAX_QUEUE)
         self._steer_queue: deque[tuple[str, str]] = deque(maxlen=QueueDisplay.MAX_QUEUE)
@@ -1060,9 +1061,6 @@ class Kon(CommandsMixin, SessionUIMixin, App[None]):
         # Determine if we should send output to LLM
         send_to_llm = display_text.startswith("!!")
 
-        # Render output inline in chat for !command with truncated summary for !!command
-        inline_output = not send_to_llm
-
         command_text = display_text[2:] if send_to_llm else display_text[1:]
         command_text = command_text.strip()
 
@@ -1074,13 +1072,9 @@ class Kon(CommandsMixin, SessionUIMixin, App[None]):
 
         # Execute the command
         self._is_running = True
-        self.run_worker(
-            self._execute_shell_command(command_text, send_to_llm, inline_output), exclusive=True
-        )
+        self.run_worker(self._execute_shell_command(command_text, send_to_llm), exclusive=True)
 
-    async def _execute_shell_command(
-        self, command: str, send_to_llm: bool, inline_output: bool
-    ) -> None:
+    async def _execute_shell_command(self, command: str, send_to_llm: bool) -> None:
         """Execute a shell command and display the result"""
         chat = self.query_one("#chat-log", ChatLog)
         status = self.query_one("#status-line", StatusLine)
@@ -1095,31 +1089,39 @@ class Kon(CommandsMixin, SessionUIMixin, App[None]):
 
             # Execute the command
             status.set_status("running")
+            # Manual shell output should render like regular bash tool output:
+            # collapsed preview with ctrl+o expansion when details are available.
             result = await bash_tool.execute(
-                BashParams(command=command), cancel_event=cancel_event, inline_output=inline_output
+                BashParams(command=command), cancel_event=cancel_event, inline_output=False
             )
 
-            # Start tool block
-            tool_block = chat.start_tool("bash", "shell", f"$ {command}", icon="$")
+            # Start tool block and route the result through ChatLog so manual
+            # shell commands use the same rendering/expansion path as agent tools.
+            self._shell_tool_counter += 1
+            tool_id = f"shell-{self._shell_tool_counter}"
+            chat.start_tool("bash", tool_id, f"$ {command}", icon="$")
 
             # Display the result
             if result.success:
-                if result.ui_details:
-                    tool_block.set_result(
-                        result.ui_summary or "Command completed",
-                        result.ui_details,
-                        True,
-                        markup=True,
-                    )
-                else:
-                    tool_block.set_result(result.result or "(no output)", None, True, markup=False)
+                ui_summary = result.ui_summary
+                ui_details = result.ui_details
+                markup = True
+                if ui_summary is None and ui_details is None:
+                    ui_summary = result.result or "(no output)"
+                    markup = False
             else:
-                tool_block.set_result(
-                    result.ui_summary or "Command failed",
-                    result.ui_details or result.result,
-                    False,
-                    markup=True,
-                )
+                ui_summary = result.ui_summary or "Command failed"
+                ui_details = result.ui_details or result.result
+                markup = True
+
+            chat.set_tool_result(
+                tool_id,
+                ui_summary,
+                ui_details,
+                result.success,
+                markup=markup,
+                ui_details_full=result.ui_details_full,
+            )
 
             # If using !!, send output to LLM for follow-up unless the command was interrupted.
             if send_to_llm and result.result and not cancel_event.is_set():

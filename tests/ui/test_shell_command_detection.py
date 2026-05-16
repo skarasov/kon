@@ -92,6 +92,7 @@ async def test_execute_shell_command_basic():
     # Create a mock app instance
     app = Mock()
     app._is_running = False
+    app._shell_tool_counter = 0
 
     # Mock the chat log and status line
     mock_chat = Mock()
@@ -102,26 +103,33 @@ async def test_execute_shell_command_basic():
     mock_result = Mock()
     mock_result.success = True
     mock_result.result = "test output"
-    mock_result.ui_details = None
-    mock_result.ui_summary = None
+    mock_result.ui_details = "collapsed output"
+    mock_result.ui_details_full = "expanded output"
+    mock_result.ui_summary = "Command completed"
 
     with patch.object(
         BashTool, "execute", new_callable=AsyncMock, return_value=mock_result
     ) as execute:
         # Call the method
-        await Kon._execute_shell_command(app, "ls -la", False, True)
+        await Kon._execute_shell_command(app, "ls -la", False)
 
     # Verify status was set to running and then idle
     mock_status.set_status.assert_any_call("running")
     mock_status.set_status.assert_called_with("idle")
 
     # Verify chat methods were called
-    mock_chat.start_tool.assert_called_once_with("bash", "shell", "$ ls -la", icon="$")
+    mock_chat.start_tool.assert_called_once_with("bash", "shell-1", "$ ls -la", icon="$")
 
-    # Verify tool block result was set
-    tool_block = mock_chat.start_tool.return_value
-    tool_block.set_result.assert_called_once_with("test output", None, True, markup=False)
-    assert execute.call_args.kwargs["inline_output"] is True
+    # Verify tool result was routed through ChatLog
+    mock_chat.set_tool_result.assert_called_once_with(
+        "shell-1",
+        "Command completed",
+        "collapsed output",
+        True,
+        markup=True,
+        ui_details_full="expanded output",
+    )
+    assert execute.call_args.kwargs["inline_output"] is False
 
     # Verify app state was reset
     assert app._is_running is False
@@ -133,6 +141,7 @@ async def test_execute_shell_command_with_llm():
     # Create a mock app instance
     app = Mock()
     app._is_running = False
+    app._shell_tool_counter = 0
     app._interrupt_requested = False
 
     # Mock the chat log and status line
@@ -144,8 +153,9 @@ async def test_execute_shell_command_with_llm():
     mock_result = Mock()
     mock_result.success = True
     mock_result.result = "git status output"
-    mock_result.ui_details = None
-    mock_result.ui_summary = None
+    mock_result.ui_details = "collapsed output"
+    mock_result.ui_details_full = "expanded output"
+    mock_result.ui_summary = "Command completed"
 
     # Mock the _run_agent method
     app._run_agent = AsyncMock()
@@ -154,7 +164,7 @@ async def test_execute_shell_command_with_llm():
         BashTool, "execute", new_callable=AsyncMock, return_value=mock_result
     ) as execute:
         # Call the method with send_to_llm=True
-        await Kon._execute_shell_command(app, "git status", True, False)
+        await Kon._execute_shell_command(app, "git status", True)
 
     # Verify _run_agent was called with the correct prompt
     app._run_agent.assert_called_once()
@@ -164,6 +174,14 @@ async def test_execute_shell_command_with_llm():
     assert "What would you like me to do with this?" in call_args
     assert app._interrupt_requested is False
     assert execute.call_args.kwargs["inline_output"] is False
+    mock_chat.set_tool_result.assert_called_once_with(
+        "shell-1",
+        "Command completed",
+        "collapsed output",
+        True,
+        markup=True,
+        ui_details_full="expanded output",
+    )
 
 
 @pytest.mark.asyncio
@@ -181,6 +199,7 @@ async def test_execute_shell_command_interruption_resets_state_and_skips_llm():
     mock_result.success = False
     mock_result.result = "Command aborted"
     mock_result.ui_details = None
+    mock_result.ui_details_full = None
     mock_result.ui_summary = "[yellow]Command aborted by user[/yellow]"
 
     async def mock_execute(*args, cancel_event=None, **kwargs):
@@ -189,7 +208,7 @@ async def test_execute_shell_command_interruption_resets_state_and_skips_llm():
         return mock_result
 
     with patch.object(BashTool, "execute", new_callable=AsyncMock, side_effect=mock_execute):
-        await Kon._execute_shell_command(app, "sleep 10", True, False)
+        await Kon._execute_shell_command(app, "sleep 10", True)
 
     app._run_agent.assert_not_called()
     assert app._is_running is False
