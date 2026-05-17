@@ -731,6 +731,11 @@ class Kon(CommandsMixin, SessionUIMixin, App[None]):
             self._ctrl_d_threshold, lambda: status.hide_exit_hint()
         )
 
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action in {"tree_page_up", "tree_page_down"}:
+            return self._selection_mode == SelectionMode.TREE
+        return True
+
     def action_tree_page_up(self) -> None:
         if self._selection_mode == SelectionMode.TREE:
             self.query_one("#tree-selector", TreeSelector).action_page_up()

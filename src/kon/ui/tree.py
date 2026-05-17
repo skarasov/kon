@@ -11,16 +11,7 @@ from textual.widget import Widget
 
 from kon import config
 from kon.core.types import AssistantMessage, TextContent, ToolCall, ToolResultMessage, UserMessage
-from kon.session import (
-    CompactionEntry,
-    CustomMessageEntry,
-    MessageEntry,
-    ModelChangeEntry,
-    SessionEntry,
-    SessionInfoEntry,
-    ThinkingLevelChangeEntry,
-    TreeNode,
-)
+from kon.session import MessageEntry, SessionEntry, TreeNode
 from kon.tools import get_tool
 from kon.tools._tool_utils import shorten_path
 
@@ -55,7 +46,6 @@ class TreeSelector(Widget):
     TreeSelector {
         height: auto;
         display: none;
-        padding: 0 1;
     }
 
     TreeSelector.-visible {
@@ -92,11 +82,13 @@ class TreeSelector(Widget):
 
     def show(self, tree: list[TreeNode], current_leaf_id: str | None, height: int = 24) -> None:
         self._current_leaf_id = current_leaf_id
-        self._max_visible_lines = max(5, height // 2)
+        self._max_visible_lines = max(5, height // 3)
         self._tool_calls_by_id = self._collect_tool_calls(tree)
         self._multiple_roots = len(tree) > 1
         self._flat_nodes = self._flatten_tree(tree)
-        self._filtered_nodes = list(self._flat_nodes)
+        self._filtered_nodes = [
+            node for node in self._flat_nodes if self._should_show_entry(node.node.entry)
+        ]
         self._build_active_path()
         self._selected_index = self._find_nearest_visible_index(current_leaf_id)
         self._last_selected_id = (
@@ -236,6 +228,18 @@ class TreeSelector(Widget):
             current_id = entry_map.get(current_id).parent_id if entry_map.get(current_id) else None
         return len(self._filtered_nodes) - 1
 
+    def _should_show_entry(self, entry: SessionEntry) -> bool:
+        if not isinstance(entry, MessageEntry):
+            return False
+        message = entry.message
+        if isinstance(message, UserMessage | ToolResultMessage):
+            return True
+        if isinstance(message, AssistantMessage):
+            return any(
+                isinstance(part, TextContent) and part.text.strip() for part in message.content
+            )
+        return False
+
     def _entry_plain_text(self, entry: SessionEntry) -> str:
         if isinstance(entry, MessageEntry):
             message = entry.message
@@ -252,16 +256,6 @@ class TreeSelector(Widget):
                 )
             if isinstance(message, ToolResultMessage):
                 return message.tool_name
-        if isinstance(entry, CustomMessageEntry):
-            return entry.content
-        if isinstance(entry, CompactionEntry):
-            return entry.summary
-        if isinstance(entry, ModelChangeEntry):
-            return entry.model_id
-        if isinstance(entry, ThinkingLevelChangeEntry):
-            return entry.thinking_level
-        if isinstance(entry, SessionInfoEntry):
-            return entry.name or ""
         return ""
 
     def _entry_display_text(self, entry: SessionEntry, selected: bool) -> Text:
@@ -278,19 +272,6 @@ class TreeSelector(Widget):
                 text.append(content or "(no content)", style=None if content else colors.dim)
             elif isinstance(message, ToolResultMessage):
                 text.append(self._format_tool_result(message), style=colors.dim)
-        elif isinstance(entry, CustomMessageEntry):
-            text.append(f"[{entry.custom_type}]: ", style=colors.info)
-            text.append(self._normalize(entry.content))
-        elif isinstance(entry, CompactionEntry):
-            text.append(
-                f"[compaction: {round(entry.tokens_before / 1000)}k tokens]", style=colors.accent
-            )
-        elif isinstance(entry, ModelChangeEntry):
-            text.append(f"[model: {entry.model_id}]", style=colors.dim)
-        elif isinstance(entry, ThinkingLevelChangeEntry):
-            text.append(f"[thinking: {entry.thinking_level}]", style=colors.dim)
-        elif isinstance(entry, SessionInfoEntry):
-            text.append(f"[title: {entry.name or 'empty'}]", style=colors.dim)
         if selected:
             text.stylize("bold")
         return text
@@ -302,11 +283,13 @@ class TreeSelector(Widget):
         if tool and call:
             try:
                 params = tool.params(**call.arguments)
-                return f"[{name}: {tool.format_call(params)}]"
+                return self._normalize(f"[{name}: {tool.format_call(params)}]", max_len=120)
             except Exception:
                 pass
         if call and call.arguments:
-            return f"[{name}: {self._format_tool_args(call.arguments)}]"
+            return self._normalize(
+                f"[{name}: {self._format_tool_args(call.arguments)}]", max_len=120
+            )
         return f"[{name}]"
 
     def _format_tool_args(self, args: dict[str, object]) -> str:
@@ -318,8 +301,11 @@ class TreeSelector(Widget):
             return ""
         return str(args)[:80]
 
-    def _normalize(self, value: str) -> str:
-        return value.replace("\n", " ").replace("\t", " ").strip()[:200]
+    def _normalize(self, value: str, max_len: int = 200) -> str:
+        text = " ".join(value.replace("\t", " ").split())
+        if len(text) <= max_len:
+            return text
+        return f"{text[: max_len - 1]}…"
 
     def render(self) -> Text:
         _ = self._render_key
@@ -328,16 +314,16 @@ class TreeSelector(Widget):
             return out
 
         colors = config.ui.colors
+        width = max(10, self.size.width or 80)
+        out.append("─" * width, style=colors.border)
+        out.append("\n Session Tree\n", style=f"bold {colors.title}")
+        out.append(" ↑/↓ move • ←/→ jump\n", style=colors.dim)
+        out.append("─" * width, style=colors.border)
         out.append("\n")
-        out.append("─" * max(10, self.size.width or 80), style=colors.border)
-        out.append("\n  Session Tree\n", style=f"bold {colors.title}")
-        out.append("  ↑/↓ move • ←/→ page\n", style=colors.dim)
-        out.append("─" * max(10, self.size.width or 80), style=colors.border)
-        out.append("\n\n")
 
         if not self._filtered_nodes:
-            out.append("  No entries found\n", style=colors.dim)
-            out.append("  (0/0)", style=colors.dim)
+            out.append("No entries found\n", style=colors.dim)
+            out.append("(0/0)", style=colors.dim)
             return out
 
         start = max(
@@ -352,11 +338,8 @@ class TreeSelector(Widget):
             flat = self._filtered_nodes[index]
             entry = flat.node.entry
             selected = index == self._selected_index
-            line = Text()
-            line.append(
-                "› ",  # noqa: RUF001 - match pi tree cursor
-                style=colors.accent if selected else "",
-            ) if selected else line.append("  ")
+            line = Text(" ")
+            line.append("›", style=colors.accent) if selected else line.append(" ")  # noqa: RUF001
             display_indent = max(0, flat.indent - 1) if self._multiple_roots else flat.indent
             connector = (
                 "└─ "
@@ -388,12 +371,13 @@ class TreeSelector(Widget):
             line.append_text(self._entry_display_text(entry, selected))
             if selected:
                 line.stylize(f"on {colors.panel_alt}")
+            line.truncate(width, overflow="ellipsis")
             out.append_text(line)
             out.append("\n")
 
-        out.append(f"  ({self._selected_index + 1}/{len(self._filtered_nodes)})", style=colors.dim)
+        out.append(f" ({self._selected_index + 1}/{len(self._filtered_nodes)})", style=colors.dim)
         out.append("\n")
-        out.append("─" * max(10, self.size.width or 80), style=colors.border)
+        out.append("─" * width, style=colors.border)
         return out
 
     def action_move_up(self) -> None:
@@ -417,14 +401,26 @@ class TreeSelector(Widget):
             self._render_key += 1
 
     def action_page_up(self) -> None:
-        self._selected_index = max(0, self._selected_index - self._max_visible_lines)
-        self._render_key += 1
+        self._jump_to_message("up")
 
     def action_page_down(self) -> None:
-        self._selected_index = min(
-            max(0, len(self._filtered_nodes) - 1), self._selected_index + self._max_visible_lines
-        )
-        self._render_key += 1
+        self._jump_to_message("down")
+
+    def _jump_to_message(self, direction: str) -> None:
+        if not self._filtered_nodes:
+            return
+        step = -1 if direction == "up" else 1
+        index = self._selected_index + step
+        while 0 <= index < len(self._filtered_nodes):
+            entry = self._filtered_nodes[index].node.entry
+            if isinstance(entry, MessageEntry) and isinstance(
+                entry.message, UserMessage | AssistantMessage
+            ):
+                self._selected_index = index
+                self._last_selected_id = entry.id
+                self._render_key += 1
+                return
+            index += step
 
     def action_select(self) -> None:
         if self._filtered_nodes:
