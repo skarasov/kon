@@ -322,8 +322,8 @@ class TreeSelector(Widget):
         out.append("\n")
 
         if not self._filtered_nodes:
-            out.append("No entries found\n", style=colors.dim)
-            out.append("(0/0)", style=colors.dim)
+            out.append(" No entries found\n", style=colors.dim)
+            out.append(" (0/0)", style=colors.dim)
             return out
 
         start = max(
