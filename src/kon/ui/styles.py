@@ -144,7 +144,7 @@ Screen {{
 #tool-output,
 .tool-output {{
     color: {colors.dim};
-    padding: 1 0 0 2;
+    padding: 0 0 0 2;
 }}
 
 #tool-images,
