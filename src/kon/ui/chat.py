@@ -239,6 +239,8 @@ class ChatLog(VerticalScroll):
                 if row_idx < len(shortcut_rows) - 1:
                     info_text.append("\n")
 
+        info_text.rstrip()
+
         info_label = Label(info_text)
         info_label.add_class("session-info")
         self.mount(info_label, before=0)
