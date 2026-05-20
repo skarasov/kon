@@ -241,7 +241,7 @@ class InfoBar(Vertical):
     def _format_row2_right(self) -> Text:
         model_text = self._model
         if self._model_provider:
-            model_text = f"{self._model} ({self._model_provider})"
+            model_text = f"({self._model_provider}) {self._model}"
         result = Text(model_text)
         result.append(f" • {self._thinking_level}")
         return result
