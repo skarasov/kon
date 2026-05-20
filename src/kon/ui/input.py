@@ -33,8 +33,8 @@ if TYPE_CHECKING:
     pass
 
 
-# REMOVED: "\x1b\r" mapping caused Escape+CR ambiguity leading to UI flicker
-# Using modern CSI-u sequences instead:
+# Support both legacy ESC+CR and modern CSI-u sequences for modified Enter keys.
+ANSI_SEQUENCES_KEYS["\x1b\r"] = (SimpleNamespace(value="shift+enter"),)  # type: ignore[assignment]
 ANSI_SEQUENCES_KEYS["\x1b[13;3u"] = (SimpleNamespace(value="alt+enter"),)  # type: ignore[assignment]
 ANSI_SEQUENCES_KEYS["\x1b[13;2u"] = (SimpleNamespace(value="shift+enter"),)  # type: ignore[assignment]
 
