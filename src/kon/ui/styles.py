@@ -151,22 +151,6 @@ Screen {{
     padding: 0 0 0 2;
 }}
 
-#tool-images,
-.tool-images {{
-    color: {colors.dim};
-    padding: 1 0 0 0;
-}}
-
-#tool-images.-hidden {{
-    display: none;
-    height: 0;
-}}
-
-.tool-image {{
-    width: 60;
-    height: auto;
-}}
-
 .tool-block.-with-details {{
     padding: 0 1;
 }}

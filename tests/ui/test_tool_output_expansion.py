@@ -3,6 +3,7 @@ from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.widgets import Label
 
+from kon.core.types import ImageContent
 from kon.ui.blocks import ToolBlock
 from kon.ui.chat import ChatLog
 from kon.ui.tool_output import format_expand_hint, truncate_tool_output_text
@@ -65,3 +66,24 @@ async def test_start_tool_uses_expanded_state_before_mount():
 
         assert block._expanded is True
         assert block.query_one("#tool-output", Label)
+
+
+@pytest.mark.asyncio
+async def test_tool_result_with_images_renders_textual_attachment_notice():
+    async with ToolExpansionTestApp().run_test() as pilot:
+        chat = pilot.app.query_one("#chat-log", ChatLog)
+        block = chat.start_tool("read", "tool-1", "~/image.png")
+        await pilot.pause()
+
+        chat.set_tool_result(
+            "tool-1",
+            "[dim]Read image[/dim]",
+            None,
+            True,
+            images=[ImageContent(data="base64data", mime_type="image/png")],
+        )
+        await pilot.pause()
+
+        output = block.query_one("#tool-output", Label)
+        assert str(output.render()) == "Attached 1 image"
+        assert not output.has_class("-hidden")
