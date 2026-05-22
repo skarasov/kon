@@ -24,7 +24,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from kon import CONFIG_DIR_NAME
+from kon import get_config_dir
 
 from .core.types import (
     AssistantMessage,
@@ -189,9 +189,8 @@ class Session:
 
     @staticmethod
     def get_sessions_dir(cwd: str) -> Path:
-        home = Path.home()
         safe_cwd = cwd.replace("/", "-").replace("\\", "-").strip("-")
-        sessions_dir = home / CONFIG_DIR_NAME / "sessions" / safe_cwd
+        sessions_dir = get_config_dir() / "sessions" / safe_cwd
         sessions_dir.mkdir(parents=True, exist_ok=True)
         sessions_dir.chmod(0o700)
         return sessions_dir

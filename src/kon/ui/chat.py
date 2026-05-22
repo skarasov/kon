@@ -8,7 +8,7 @@ from textual.containers import VerticalScroll
 from textual.timer import Timer
 from textual.widgets import Label
 
-from kon import config, get_config_dir
+from kon import config, get_agents_dir
 from kon.context.skills import Skill
 from kon.core.types import ImageContent
 from kon.permissions import ApprovalResponse
@@ -31,7 +31,7 @@ PRUNE_TO = 200
 
 
 def _format_skill_label(skill: Skill) -> str:
-    global_skills_dir = (get_config_dir() / "skills").resolve(strict=False)
+    global_skills_dir = (get_agents_dir() / "skills").resolve(strict=False)
     skill_path = Path(skill.path).resolve(strict=False)
     if skill_path.is_relative_to(global_skills_dir):
         return f"{skill.name} (global)"
@@ -382,7 +382,7 @@ class ChatLog(VerticalScroll):
         text.append("\n")
         text.append("[Extra tools]\n", style=notice_color)
         text.append(
-            "  --extra-tools web_search,web_fetch  or  [tools] extra in ~/.kon/config.toml",
+            "  --extra-tools web_search,web_fetch  or  [tools] extra in ~/.config/kon/config.toml",
             style=muted_color,
         )
 

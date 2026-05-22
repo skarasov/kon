@@ -14,6 +14,8 @@ from typing import Any
 
 import aiohttp
 
+from kon import get_config_dir
+
 # GitHub OAuth client ID (same as VS Code Copilot extension)
 _CLIENT_ID = b64decode("SXYxLmI1MDdhMDhjODdlY2ZlOTg=").decode()
 
@@ -44,7 +46,7 @@ class DeviceCodeResponse:
 
 
 def get_copilot_auth_path() -> Path:
-    return Path.home() / ".kon" / "copilot_auth.json"
+    return get_config_dir() / "copilot_auth.json"
 
 
 def load_credentials() -> CopilotCredentials | None:

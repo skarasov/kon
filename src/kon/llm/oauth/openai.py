@@ -13,6 +13,8 @@ import secrets
 import time
 from dataclasses import dataclass
 from pathlib import Path
+
+from kon import get_config_dir
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -40,7 +42,7 @@ class OpenAICredentials:
 
 
 def get_openai_auth_path() -> Path:
-    return Path.home() / ".kon" / "openai_auth.json"
+    return get_config_dir() / "openai_auth.json"
 
 
 def load_openai_credentials() -> OpenAICredentials | None:

@@ -32,8 +32,8 @@ content = """You are an expert coding assistant called Kon. You help users by re
 - Be concise in your responses
 - Show file paths clearly when working with files
 - When summarizing your actions, output plain text directly DO NOT use cat or bash to display
-- Kon session logs are JSONL files in ~/.kon/sessions; If the user references recent sessions or a particular session, look there
-- If the user mentions adding a new skill then look at https://github.com/0xku/kon/blob/main/README.md#skills"""
+- Kon session logs are JSONL files in ~/.config/kon/sessions; If the user references recent sessions or a particular session, look there
+- If the user mentions adding a new skill, use ~/.agents/skills for user skills and .agents/skills for project skills"""
 
 [compaction]
 # What kon should do after compacting history on context overflow.

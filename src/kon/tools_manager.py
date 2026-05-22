@@ -13,11 +13,11 @@ from typing import Literal
 
 import aiohttp
 
-from .config import CONFIG_DIR_NAME
+from .config import get_config_dir
 
 ToolName = Literal["fd", "rg"]
 
-_BIN_DIR = Path.home() / CONFIG_DIR_NAME / "bin"
+_BIN_DIR = get_config_dir() / "bin"
 
 
 @dataclass

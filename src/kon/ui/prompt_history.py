@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from kon import CONFIG_DIR_NAME
+from kon import get_config_dir
 
 MAX_HISTORY_ENTRIES = 50
 
 
 def _history_path() -> Path:
-    return Path.home() / CONFIG_DIR_NAME / "prompt-history.jsonl"
+    return get_config_dir() / "prompt-history.jsonl"
 
 
 class PromptHistory:

@@ -14,9 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .. import get_config_dir
 from ..tools import tools_by_name
-
-CONFIG_DIR_NAME = ".kon"
 MAX_RESULT_LINES = 10
 
 _CSS = """\
@@ -180,7 +179,7 @@ def _safe_cwd(cwd: str) -> str:
 
 
 def _get_sessions_dir(cwd: str) -> Path:
-    return Path.home() / CONFIG_DIR_NAME / "sessions" / _safe_cwd(cwd)
+    return get_config_dir() / "sessions" / _safe_cwd(cwd)
 
 
 def _read_session_header(path: Path) -> dict[str, Any] | None:
