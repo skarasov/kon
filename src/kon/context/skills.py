@@ -17,7 +17,8 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
-from .. import get_agents_dir as get_config_dir, get_legacy_config_dir
+from .. import get_agents_dir as get_config_dir
+from .. import get_legacy_config_dir
 from ._xml import escape_xml
 
 MAX_NAME_LENGTH = 64
@@ -166,7 +167,9 @@ def _load_skill_from_dir(skill_dir: Path) -> tuple[Skill | None, list[SkillWarni
         return None, [SkillWarning(file_path, str(e))]
 
 
-def _load_skills_from_dir(directory: Path, *, legacy_warning: str | None = None) -> LoadSkillsResult:
+def _load_skills_from_dir(
+    directory: Path, *, legacy_warning: str | None = None
+) -> LoadSkillsResult:
     skills: list[Skill] = []
     warnings: list[SkillWarning] = []
 
@@ -257,8 +260,10 @@ def load_skills(cwd: str | None = None) -> LoadSkillsResult:
         _load_skills_from_dir(
             legacy_project_skills_dir,
             legacy_warning=(
-                f"Legacy project skills at {shorten_path(str(legacy_project_skills_dir))} are deprecated. "
-                "Move them to .agents/skills; the old .kon/skills directory can be removed after migration."
+                "Legacy project skills at "
+                f"{shorten_path(str(legacy_project_skills_dir))} are deprecated. "
+                "Move them to .agents/skills; the old .kon/skills directory can be "
+                "removed after migration."
             ),
         )
     )
@@ -273,8 +278,8 @@ def load_skills(cwd: str | None = None) -> LoadSkillsResult:
             _load_skills_from_dir(
                 legacy_user_skills_dir,
                 legacy_warning=(
-                    "Legacy user skills at ~/.kon/skills are deprecated. Move them to ~/.agents/skills; "
-                    "legacy support will be removed later."
+                    "Legacy user skills at ~/.kon/skills are deprecated. Move them to "
+                    "~/.agents/skills; legacy support will be removed later."
                 ),
             )
         )

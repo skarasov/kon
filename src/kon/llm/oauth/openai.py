@@ -13,12 +13,12 @@ import secrets
 import time
 from dataclasses import dataclass
 from pathlib import Path
-
-from kon import get_config_dir
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
+
+from kon import get_config_dir
 
 _CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann"
 _AUTHORIZE_URL = "https://auth.openai.com/oauth/authorize"

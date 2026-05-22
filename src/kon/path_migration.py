@@ -8,6 +8,7 @@ for shared agent resources.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shutil
 from dataclasses import dataclass, field
@@ -26,12 +27,7 @@ class PathMigrationState:
 _STATE: PathMigrationState | None = None
 
 
-CONFIG_FILES = [
-    "config.toml",
-    "openai_auth.json",
-    "copilot_auth.json",
-    "prompt-history.jsonl",
-]
+CONFIG_FILES = ["config.toml", "openai_auth.json", "copilot_auth.json", "prompt-history.jsonl"]
 CONFIG_DIRS = ["sessions", "bin"]
 
 
@@ -63,10 +59,8 @@ def _merge_copy(src: Path, dst: Path) -> None:
 
 
 def _remove_if_empty(path: Path) -> None:
-    try:
+    with contextlib.suppress(OSError):
         path.rmdir()
-    except OSError:
-        pass
 
 
 def _migrate_legacy_paths(new_config: Path, old_config: Path, new_agents: Path) -> list[str]:
@@ -97,14 +91,16 @@ def _migrate_legacy_paths(new_config: Path, old_config: Path, new_agents: Path) 
         _remove_if_empty(old_config)
         if old_config.exists():
             warnings.append(
-                "Kon successfully migrated legacy user data from ~/.kon to ~/.config/kon and ~/.agents, "
-                "but ~/.kon still contains files Kon did not remove. Migration succeeded; you can remove ~/.kon manually "
-                "after reviewing anything left there."
+                "Kon successfully migrated legacy user data from ~/.kon to ~/.config/kon "
+                "and ~/.agents, but ~/.kon still contains files Kon did not remove. "
+                "Migration succeeded; you can remove ~/.kon manually after reviewing "
+                "anything left there."
             )
         else:
             warnings.append(
                 "Kon migrated legacy user data from ~/.kon to ~/.config/kon and ~/.agents. "
-                "The old ~/.kon user location was removed; future versions will only use the new locations."
+                "The old ~/.kon user location was removed; future versions will only "
+                "use the new locations."
             )
 
     return warnings
@@ -132,8 +128,9 @@ def get_path_state() -> PathMigrationState:
             )
     elif new_config.exists() and old_config.exists():
         warnings.append(
-            "Kon is using the migrated ~/.config/kon and ~/.agents locations, but legacy ~/.kon still exists. "
-            "Migration appears complete; you can remove ~/.kon manually after reviewing anything left there."
+            "Kon is using the migrated ~/.config/kon and ~/.agents locations, "
+            "but legacy ~/.kon still exists. Migration appears complete; you can "
+            "remove ~/.kon manually after reviewing anything left there."
         )
 
     _STATE = PathMigrationState(

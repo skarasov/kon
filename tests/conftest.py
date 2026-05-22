@@ -45,6 +45,13 @@ class FakeChat:
         self.statuses.append(message)
 
 
+@pytest.fixture(autouse=True)
+def isolate_user_config(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path / "home")
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    reset_config()
+
+
 @pytest.fixture
 def fake_chat() -> FakeChat:
     return FakeChat()

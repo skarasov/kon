@@ -16,6 +16,7 @@ from typing import Any
 
 from .. import get_config_dir
 from ..tools import tools_by_name
+
 MAX_RESULT_LINES = 10
 
 _CSS = """\

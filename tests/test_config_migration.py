@@ -121,7 +121,6 @@ enabled = true
 
 def test_current_version_config_is_not_rewritten(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    legacy_config_dir = home / ".kon"
     config_dir = home / ".config" / "kon"
     config_dir.mkdir(parents=True)
     config_file = config_dir / "config.toml"
@@ -182,9 +181,7 @@ content = """Custom prompt
     )
     assert "# Tool usage" not in cfg.llm.system_prompt.content
     assert "Old tool instruction" not in cfg.llm.system_prompt.content
-    assert (
-        "~/.agents/skills" in cfg.llm.system_prompt.content
-    )
+    assert "~/.agents/skills" in cfg.llm.system_prompt.content
     assert cfg.llm.system_prompt.git_context is True
 
     updated = tomllib.loads(config_file.read_text(encoding="utf-8"))
