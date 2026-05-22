@@ -21,8 +21,8 @@ def test_invalid_toml_falls_back_to_defaults_and_records_warning(tmp_path, monke
     assert cfg.llm.default_model == "gpt-5.4"
 
     warnings = consume_config_warnings()
-    assert len(warnings) == 1
-    assert "Invalid config" in warnings[0]
-    assert str(config_file) in warnings[0]
+    assert len(warnings) >= 1
+    assert any("Invalid config" in warning for warning in warnings)
+    assert any("config.toml" in warning for warning in warnings)
 
     assert consume_config_warnings() == []

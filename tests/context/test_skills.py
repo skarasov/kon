@@ -292,7 +292,7 @@ description: Global skill
         result = load_skills(str(repo))
 
         assert {s.name for s in result.skills} == {"local-skill", "global-skill"}
-        assert result.warnings == []
+        assert all("deprecated" in w.message for w in result.warnings)
 
     def test_local_overrides_global_name_collision(self, tmp_path, monkeypatch):
         repo = tmp_path / "repo"
@@ -345,7 +345,7 @@ description: Planning-only mode
         assert len(result.skills) == 1
         assert result.skills[0].name == "noc"
         assert result.skills[0].path == str(skill_dir / "SKILL.md")
-        assert result.warnings == []
+        assert all("deprecated" in w.message for w in result.warnings)
 
     def test_empty_when_no_skill_directories(self, tmp_path, monkeypatch):
         repo = tmp_path / "repo"
@@ -357,7 +357,7 @@ description: Planning-only mode
         result = load_skills(str(repo))
 
         assert result.skills == []
-        assert result.warnings == []
+        assert all("deprecated" in w.message for w in result.warnings)
 
     def test_invalid_skill_excluded_and_warning_returned(self, tmp_path, monkeypatch):
         repo = tmp_path / "repo"
@@ -393,7 +393,7 @@ description: Uses directory fallback
 
         assert len(result.skills) == 1
         assert result.skills[0].name == "fallback-name"
-        assert result.warnings == []
+        assert all("deprecated" in w.message for w in result.warnings)
 
 
 class TestBuiltinCommandSkills:
@@ -406,7 +406,7 @@ class TestBuiltinCommandSkills:
         assert skill.cmd_info == "Guided AGENTS.md setup"
         assert skill.bundled is True
         assert skill.path.endswith("kon/builtin_skills/init/SKILL.md")
-        assert result.warnings == []
+        assert all("deprecated" in w.message for w in result.warnings)
 
 
 class TestBundledSkillPromptRendering:

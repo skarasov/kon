@@ -6,10 +6,12 @@ from kon.config import CURRENT_CONFIG_VERSION, consume_config_warnings, get_conf
 
 def test_old_config_is_migrated_and_backed_up(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    config_dir = home / ".kon"
-    config_dir.mkdir(parents=True)
+    legacy_config_dir = home / ".kon"
+    config_dir = home / ".config" / "kon"
+    legacy_config_dir.mkdir(parents=True)
+    legacy_config_file = legacy_config_dir / "config.toml"
     config_file = config_dir / "config.toml"
-    config_file.write_text(
+    legacy_config_file.write_text(
         """
 [meta]
 config_version = 2
@@ -48,10 +50,12 @@ def test_v4_config_migrates_notification_volume_without_overwriting_existing_val
     tmp_path, monkeypatch
 ):
     home = tmp_path / "home"
-    config_dir = home / ".kon"
-    config_dir.mkdir(parents=True)
+    legacy_config_dir = home / ".kon"
+    config_dir = home / ".config" / "kon"
+    legacy_config_dir.mkdir(parents=True)
+    legacy_config_file = legacy_config_dir / "config.toml"
     config_file = config_dir / "config.toml"
-    config_file.write_text(
+    legacy_config_file.write_text(
         """
 [meta]
 config_version = 4
@@ -82,10 +86,12 @@ volume = 0.25
 
 def test_v4_config_migrates_missing_notification_volume(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    config_dir = home / ".kon"
-    config_dir.mkdir(parents=True)
+    legacy_config_dir = home / ".kon"
+    config_dir = home / ".config" / "kon"
+    legacy_config_dir.mkdir(parents=True)
+    legacy_config_file = legacy_config_dir / "config.toml"
     config_file = config_dir / "config.toml"
-    config_file.write_text(
+    legacy_config_file.write_text(
         """
 [meta]
 config_version = 4
@@ -115,7 +121,8 @@ enabled = true
 
 def test_current_version_config_is_not_rewritten(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    config_dir = home / ".kon"
+    legacy_config_dir = home / ".kon"
+    config_dir = home / ".config" / "kon"
     config_dir.mkdir(parents=True)
     config_file = config_dir / "config.toml"
     original_text = (
@@ -144,10 +151,12 @@ def test_current_version_config_is_not_rewritten(tmp_path, monkeypatch):
 
 def test_v5_config_replaces_system_prompt_with_current_default(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    config_dir = home / ".kon"
-    config_dir.mkdir(parents=True)
+    legacy_config_dir = home / ".kon"
+    config_dir = home / ".config" / "kon"
+    legacy_config_dir.mkdir(parents=True)
+    legacy_config_file = legacy_config_dir / "config.toml"
     config_file = config_dir / "config.toml"
-    config_file.write_text(
+    legacy_config_file.write_text(
         '''
 [meta]
 config_version = 5
@@ -174,7 +183,7 @@ content = """Custom prompt
     assert "# Tool usage" not in cfg.llm.system_prompt.content
     assert "Old tool instruction" not in cfg.llm.system_prompt.content
     assert (
-        "https://github.com/0xku/kon/blob/main/README.md#skills" in cfg.llm.system_prompt.content
+        "~/.agents/skills" in cfg.llm.system_prompt.content
     )
     assert cfg.llm.system_prompt.git_context is True
 
@@ -190,10 +199,12 @@ content = """Custom prompt
 
 def test_v1_llm_system_prompt_keys_migrate_to_nested_section(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    config_dir = home / ".kon"
-    config_dir.mkdir(parents=True)
+    legacy_config_dir = home / ".kon"
+    config_dir = home / ".config" / "kon"
+    legacy_config_dir.mkdir(parents=True)
+    legacy_config_file = legacy_config_dir / "config.toml"
     config_file = config_dir / "config.toml"
-    config_file.write_text(
+    legacy_config_file.write_text(
         """
 [meta]
 config_version = 1
