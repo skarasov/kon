@@ -1,6 +1,6 @@
 ---
 name: kon-tmux-test
-description: E2E testing of kon using tmux sessions; IMPORTANT: only trigger this skill when user asks for e2e testing of kon
+description: "E2E testing of kon using tmux sessions; IMPORTANT: only trigger this skill when user asks for e2e testing of kon"
 ---
 
 # Kon Tmux E2E Testing
