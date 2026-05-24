@@ -169,6 +169,16 @@ MODELS: dict[str, Model] = {
         supports_images=True,
         supports_thinking=True,
     ),
+    # Azure AI Foundry - Opus 4.7
+    "claude-opus-4.7-azure": Model(
+        id="claude-opus-4.7",
+        provider="azure-ai-foundry",
+        api=ApiType.AZURE_AI_FOUNDRY,
+        base_url="",  # resolved from AZURE_AI_FOUNDRY_BASE_URL env var
+        max_tokens=8192 * 2,
+        supports_images=True,
+        supports_thinking=True,
+    ),
 }
 
 
