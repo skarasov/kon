@@ -6,6 +6,38 @@ All notable changes to this project will be documented in this file.
 
 - No changes yet.
 
+## 0.3.11 - 2026-05-29
+
+### Added
+
+- Added `insecure_skip_verify` for local providers using self-signed certificates - @s3rj1k.
+- Added per-model Anthropic capability registry and thinking config improvements.
+- Added Claude Opus 4.7 Azure model entry.
+- Added migration of user data from `~/.kon` to `~/.config/kon` and `~/.agents`.
+- Added bash command header highlighting.
+- Added persisted UI settings toggles.
+
+### Changed
+
+- Migrated context system paths for skills and `AGENTS.md` to `.agents`.
+- Centralized internal path handling and removed legacy Kon path migration.
+- Updated default Codex model and authentication guidance.
+- Refined `/init`, `/resume`, thinking UI, and theme styling.
+
+### Fixed
+
+- Honored `request_timeout_seconds` in insecure-skip-verify HTTP clients - @s3rj1k.
+- Fixed loaded resource display before agent initialization.
+- Fixed OpenAI Codex transport, websocket interrupt handling, and SSE fallback behavior.
+- Fixed UI completion path handling.
+- Fixed empty thinking block handling and empty-compaction error display.
+- Fixed duplicate home skill loading and skill frontmatter parsing.
+- Fixed stale OAuth login state and completion popup info bar behavior - @Meltedd.
+
+### Tests
+
+- Updated config, login, migration, and compaction test coverage.
+
 ## 0.3.10 - 2026-05-21
 
 ### Added
