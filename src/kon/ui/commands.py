@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 from kon import (
     config,
     set_colored_tool_badge,
+    set_git_context,
     set_notifications_enabled,
     set_permissions_mode,
     set_show_welcome_shortcuts,
@@ -397,12 +398,14 @@ class CommandsMixin:
         shortcut_status = "on" if config.ui.show_welcome_shortcuts else "off"
         thinking_lines_status = config.ui.thinking_lines
         colored_badge_status = "on" if config.ui.colored_tool_badge else "off"
+        git_context_status = "on" if config.llm.system_prompt.git_context else "off"
         return [
             ListItem(
                 value="colored-tool-badge",
                 label="colored-tool-badge",
                 description=colored_badge_status,
             ),
+            ListItem(value="git-context", label="git-context", description=git_context_status),
             ListItem(
                 value="notifications", label="notifications", description=notification_status
             ),
@@ -482,6 +485,19 @@ class CommandsMixin:
             mode = "on" if not badge_current else "off"
             chat = self.query_one("#chat-log", ChatLog)
             chat.show_status(f"Colored tool badge turned {mode}")
+            self._show_settings_picker(selected_value=item_value)
+            return "reopened-picker"
+
+        elif item_value == "git-context":
+            git_current = config.llm.system_prompt.git_context
+            set_git_context(not git_current)
+            mode = "on" if not git_current else "off"
+            chat = self.query_one("#chat-log", ChatLog)
+            chat.show_status(f"Git context turned {mode}")
+            chat.add_info_message(
+                "Git context change applies on new conversations (use /new) or on kon restart.",
+                warning=True,
+            )
             self._show_settings_picker(selected_value=item_value)
             return "reopened-picker"
 
