@@ -48,6 +48,7 @@ class Skill:
     description: str
     register_cmd: bool = False
     cmd_info: str = ""
+    include_in_prompt: bool = True
     bundled: bool = False
 
 
@@ -163,7 +164,9 @@ def _load_skill_from_dir(skill_dir: Path) -> tuple[Skill | None, list[SkillWarni
         parent_dir_name = skill_dir.name
         name = frontmatter.get("name") or parent_dir_name
         description = frontmatter.get("description", "")
-        register_cmd = _parse_bool(frontmatter.get("register_cmd"))
+        register_cmd_value = str(frontmatter.get("register_cmd", "")).strip().lower()
+        cmd_only = register_cmd_value == "only"
+        register_cmd = cmd_only or _parse_bool(frontmatter.get("register_cmd"))
         cmd_info = str(frontmatter.get("cmd_info", "")).strip()
 
         warnings = _validate_skill(
@@ -179,6 +182,7 @@ def _load_skill_from_dir(skill_dir: Path) -> tuple[Skill | None, list[SkillWarni
             path=file_path,
             register_cmd=register_cmd,
             cmd_info=cmd_info,
+            include_in_prompt=not cmd_only,
         )
         return skill, warnings
 
@@ -296,6 +300,7 @@ def load_builtin_cmd_skills() -> LoadSkillsResult:
                 description=skill.description,
                 register_cmd=skill.register_cmd,
                 cmd_info=skill.cmd_info,
+                include_in_prompt=skill.include_in_prompt,
                 bundled=True,
             )
             for skill in result.skills
@@ -342,6 +347,7 @@ def merge_registered_skills(primary: list[Skill], secondary: list[Skill]) -> lis
 
 
 def formatted_skills(skills: list[Skill]) -> str:
+    skills = [skill for skill in skills if skill.include_in_prompt]
     if not skills:
         return ""
 

@@ -296,6 +296,24 @@ register_cmd: yes
 
         assert skill is not None
         assert skill.register_cmd is True
+        assert skill.include_in_prompt is True
+        assert warnings == []
+
+    def test_register_cmd_only_excludes_skill_from_prompt(self, tmp_path):
+        skill_dir = tmp_path / "cmd-only-skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text("""---
+name: cmd-only-skill
+description: Slash only skill
+register_cmd: only
+---
+""")
+
+        skill, warnings = _load_skill_from_dir(skill_dir)
+
+        assert skill is not None
+        assert skill.register_cmd is True
+        assert skill.include_in_prompt is False
         assert warnings == []
 
 
@@ -550,3 +568,33 @@ class TestFormatSkillsForPrompt:
 
         assert "<name>skill-a</name>" in result
         assert "<name>skill-b</name>" in result
+
+    def test_excludes_cmd_only_skills(self):
+        skills = [
+            Skill(name="skill-a", description="First", path="/a/SKILL.md"),
+            Skill(
+                name="skill-b",
+                description="Second",
+                path="/b/SKILL.md",
+                register_cmd=True,
+                include_in_prompt=False,
+            ),
+        ]
+
+        result = formatted_skills(skills)
+
+        assert "<name>skill-a</name>" in result
+        assert "<name>skill-b</name>" not in result
+
+    def test_returns_empty_when_all_skills_are_cmd_only(self):
+        skills = [
+            Skill(
+                name="skill-a",
+                description="First",
+                path="/a/SKILL.md",
+                register_cmd=True,
+                include_in_prompt=False,
+            )
+        ]
+
+        assert formatted_skills(skills) == ""
