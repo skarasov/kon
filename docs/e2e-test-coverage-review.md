@@ -6,14 +6,14 @@ This note captures the current tmux E2E coverage, when it was last materially up
 
 The current tmux E2E harness lives in the repo-local Kon skill:
 
-- `.kon/skills/kon-tmux-test/SKILL.md`
-- `.kon/skills/kon-tmux-test/run-e2e-tests.sh`
+- `.agents/skills/kon-tmux-test/SKILL.md`
+- `.agents/skills/kon-tmux-test/run-e2e-tests.sh`
 
 The main script launches Kon in a detached tmux session, drives keyboard input with `tmux send-keys`, captures pane output to `/tmp/kon-test-*.txt`, and relies on the reviewing agent/user to evaluate those captured outputs.
 
 ## Last material update
 
-Git history for `.kon/skills/kon-tmux-test` shows the last material test update was:
+Git history for `.agents/skills/kon-tmux-test` shows the last material test update was:
 
 ```text
 ae88aae 2026-03-18 21:18:04 +0530 test: make tmux e2e tab completion cases repo-deterministic
@@ -44,7 +44,7 @@ The coverage is strongest for basic UI triggers and tab completion. It is weaker
 
 ## Current documentation drift
 
-`.kon/skills/kon-tmux-test/SKILL.md` is partially stale compared with `run-e2e-tests.sh`.
+`.agents/skills/kon-tmux-test/SKILL.md` is partially stale compared with `run-e2e-tests.sh`.
 
 Examples:
 
@@ -165,7 +165,7 @@ Several of these can be covered with deterministic negative-state tests, even be
 | --- | --- |
 | Built-in `/init` appears | Slash menu includes `/init` with its guided setup description |
 | `/init` selection behavior | Selecting `/init` inserts/submits the skill trigger path correctly without breaking normal slash-command handling |
-| Custom registered skill | Seed a temp project `.kon/skills/<name>/SKILL.md` with `register_cmd: true`, launch Kon, verify command appears in slash menu |
+| Custom registered skill | Seed a temp project `.agents/skills/<name>/SKILL.md` with `register_cmd: true`, launch Kon, verify command appears in slash menu |
 | Skill preview in resume list | If a skill-triggered session is persisted, `/resume` preview shows `/skill-name ...` instead of raw internal prompt scaffolding |
 
 ### P1: Queue and steer behavior
@@ -196,7 +196,7 @@ Several of these can be covered with deterministic negative-state tests, even be
 ## Suggested implementation order
 
 1. Isolate `HOME` and test config/session directories in the tmux harness.
-2. Update `.kon/skills/kon-tmux-test/SKILL.md` to match the current script.
+2. Update `.agents/skills/kon-tmux-test/SKILL.md` to match the current script.
 3. Add P0 runtime-mode and info-bar tests.
 4. Add deterministic command negative-state tests for `/compact`, `/handoff`, `/copy`, and `/export`.
 5. Add session resume/continue/delete tests using seeded fixtures.

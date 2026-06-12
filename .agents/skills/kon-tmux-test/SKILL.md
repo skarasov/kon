@@ -29,14 +29,14 @@ Kon is a TUI (Textual-based) app. Running tests programmatically is hard. Tmux p
 
 ```bash
 # Run all e2e tests from the repo root
-bash .kon/skills/kon-tmux-test/run-e2e-tests.sh
+bash .agents/skills/kon-tmux-test/run-e2e-tests.sh
 
 # Optional: keep the temporary HOME for debugging
-KEEP_E2E_HOME=1 bash .kon/skills/kon-tmux-test/run-e2e-tests.sh
+KEEP_E2E_HOME=1 bash .agents/skills/kon-tmux-test/run-e2e-tests.sh
 
 # Optional: override launch command/provider/model
 KON_CMD='uv run kon --model gpt-5.5' \
-  bash .kon/skills/kon-tmux-test/run-e2e-tests.sh
+  bash .agents/skills/kon-tmux-test/run-e2e-tests.sh
 ```
 
 After running, read `/tmp/kon-test-*.txt` and evaluate the captured pane/config/filesystem outputs.
@@ -48,7 +48,7 @@ After running, read `/tmp/kon-test-*.txt` and evaluate the captured pane/config/
 Creates a deterministic test project structure at `/tmp/kon-test-project/`.
 
 ```bash
-bash .kon/skills/kon-tmux-test/setup-test-project.sh
+bash .agents/skills/kon-tmux-test/setup-test-project.sh
 ```
 
 ### Main Test Script: `run-e2e-tests.sh`
@@ -56,7 +56,7 @@ bash .kon/skills/kon-tmux-test/setup-test-project.sh
 Runs comprehensive e2e tests including UI triggers, runtime controls, tab completion, and tool execution.
 
 ```bash
-bash .kon/skills/kon-tmux-test/run-e2e-tests.sh
+bash .agents/skills/kon-tmux-test/run-e2e-tests.sh
 ```
 
 ## Test Categories
