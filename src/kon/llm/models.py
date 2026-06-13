@@ -46,6 +46,16 @@ MODELS: dict[str, Model] = {
         supports_images=True,
         supports_thinking=True,
     ),
+    "glm-5.2": Model(
+        id="glm-5.2",
+        provider="zhipu",
+        api=ApiType.OPENAI_COMPLETIONS,
+        base_url="https://api.z.ai/api/coding/paas/v4",
+        max_tokens=65536,
+        supports_images=True,
+        supports_thinking=True,
+        context_window=131072,
+    ),
     # DeepSeek models (OpenAI-compatible Chat Completions API)
     "deepseek-v4-flash": Model(
         id="deepseek-v4-flash",
