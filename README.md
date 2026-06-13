@@ -14,7 +14,7 @@
   <img src="docs/images/kon-screenshot.png" alt="Kon terminal UI screenshot" width="700" />
 </p>
 
-Kon is a minimal coding agent focused on a tiny core prompt, a small built-in toolset, and project-specific context layered on top only when you want it. The default system prompt stays **under 270 tokens**, and even including the built-in tool descriptions and parameter schemas, the fixed harness stays at about **~1,000 tokens**. The core experience is built around just **6 default tools** plus **2 optional web tools**.
+Kon is a minimal coding agent focused on a tiny core prompt, a small built-in toolset, and project-specific context layered on top only when you want it. The default system prompt stays **under 270 tokens**, and even including the built-in tool descriptions and parameter schemas, the fixed harness stays at about **~1,000 tokens**. The core experience is built around **6 default tools** plus **2 extra web tools** included by the shipped config.
 
 [Kon](https://bleach.fandom.com/wiki/Kon) is named after the artificial soul from *Bleach*.
 
@@ -118,7 +118,7 @@ kon -c
 # resume a specific session by id or unique prefix
 kon -r 3f2a8c1b-...
 
-# enable the optional web tools
+# enable extra web tools for this run
 kon --extra-tools web_search,web_fetch
 ```
 
@@ -185,7 +185,7 @@ Kon tries to stay small in the places that matter most:
 
 - **System prompt under 270 tokens** by default
 - **6 core tools** for everyday coding work
-- **2 optional extra tools** for web lookup and content extraction
+- **2 extra web tools** for web lookup and content extraction in the shipped config
 - **Project instructions are externalized** through `AGENTS.md`
 - **Heavily configurable** defaults that you can tune around model, prompt, permissions, compaction, tools, and UI
 - **Useful features are borrowed selectively** from other agents, like `/handoff` inspired by Amp
@@ -267,24 +267,24 @@ This is the core experience: small, predictable, and enough for most coding task
 
 ### Extra tools
 
-Kon also ships optional built-in tools you can turn on when needed:
+Kon also ships extra built-in tools beyond the 6 core tools. The shipped config enables these web tools by default:
 
-| Tool | Purpose | How to enable |
+| Tool | Purpose | Config |
 | --- | --- | --- |
-| `web_search` | Search the web with DuckDuckGo | `--extra-tools web_search,web_fetch` or config |
+| `web_search` | Search the web with DuckDuckGo | `extra = ["web_search", "web_fetch"]` |
 | `web_fetch` | Fetch and extract clean page content | Usually paired with `web_search` |
 
-Enable them from the CLI:
+You can also add extra tools for a single run from the CLI:
 
 ```bash
 kon --extra-tools web_search,web_fetch
 ```
 
-Or in `~/.config/kon/config.toml`:
+To disable web tools, remove them from `~/.config/kon/config.toml`:
 
 ```toml
 [tools]
-extra = ["web_search", "web_fetch"]
+extra = []
 ```
 
 ---
@@ -554,7 +554,7 @@ Kon supports two permission modes:
 | `prompt` | Ask before mutating tool calls |
 | `auto` | Skip approval prompts |
 
-In `prompt` mode, non-mutating tools are allowed automatically, and some clearly read-only shell commands are also allowed. This includes the optional web tools: `web_search` and `web_fetch` are read-only, so they run **without an approval prompt** even in `prompt` mode. If you don't want the agent reaching the network at all, leave them out of `--extra-tools` / the `[tools] extra` config.
+In `prompt` mode, non-mutating tools are allowed automatically, and some clearly read-only shell commands are also allowed. This includes web tools: `web_search` and `web_fetch` are read-only, so they run **without an approval prompt** even in `prompt` mode. If you don't want the agent reaching the network at all, remove them from the `[tools] extra` config.
 
 Use `/permissions` to switch modes for the current session and persist the change to config.
 
