@@ -61,6 +61,10 @@ class UIConfig(BaseModel):
     # Show the list of keyboard shortcuts in the welcome section on launch.
     # Set to false to hide the shortcuts panel.
     show_welcome_shortcuts: bool = True
+    # Models hidden from the /model picker. Use a provider name ("github-copilot")
+    # to hide all its models, or "provider:model" to hide a specific model.
+    # Hidden models remain usable via config defaults or session resume.
+    hidden_models: list[str] = []
 
     @field_validator("theme")
     @classmethod

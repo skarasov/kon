@@ -210,18 +210,24 @@ Here is the full config shape:
 
 ```toml
 [meta]
-config_version = 4
+config_version = 6
 
 [llm]
-default_provider = "openai-codex"
-default_model = "gpt-5.4"
-default_base_url = ""
-default_thinking_level = "high"
+default_provider = "openai-codex" # "openai", "zhipu", "deepseek", "github-copilot", "openai-codex", "azure-ai-foundry"
+default_model = "gpt-5.5"
+default_base_url = ""             # override the provider endpoint (e.g. a local server)
+default_thinking_level = "low"    # "none" | "minimal" | "low" | "medium" | "high" | "xhigh"
 tool_call_idle_timeout_seconds = 180
+request_timeout_seconds = 600
 
 [llm.auth]
+# Policy for OpenAI-/Anthropic-compatible endpoints.
+# "auto" injects a placeholder key for local endpoints; "none" always does; "required" demands a real key.
 openai_compat = "auto"
 anthropic_compat = "auto"
+
+[llm.tls]
+insecure_skip_verify = false      # allow self-signed certs on local providers
 
 [llm.system_prompt]
 git_context = true
@@ -229,26 +235,33 @@ content = """You are an expert coding assistant called Kon.
 ..."""
 
 [compaction]
-on_overflow = "continue"
-buffer_tokens = 20000
+on_overflow = "continue"          # "continue" keeps going after compaction; "pause" stops
+buffer_tokens = 20000             # compact this many tokens before the context window fills
 
 [agent]
 max_turns = 500
 default_context_window = 200000
 
 [tools]
-extra = ["web_search", "web_fetch"]
+extra = ["web_search", "web_fetch"] # extra built-in tools beyond the core 6
 
 [ui]
 theme = "gruvbox-dark"
-
-[notifications]
-enabled = true
-volume = 0.5
+collapse_thinking = true          # collapse finalized thinking blocks to a summary
+thinking_lines = "1"              # lines shown when collapsed; "none" = no truncation
+colored_tool_badge = true         # colorize the tool icon/name badge on success
+show_welcome_shortcuts = true     # show keyboard shortcuts on launch
+hidden_models = []                # hide entries from the /model picker
 
 [permissions]
-mode = "prompt"
+mode = "prompt"                   # "prompt" asks before mutating actions; "auto" skips prompts
+
+[notifications]
+enabled = true                    # play audio when a task finishes, errors, or awaits approval
+volume = 0.5                      # 0.0 (muted) to 1.0 (full)
 ```
+
+The `ui.hidden_models` list trims the `/model` picker. Use a provider name (`"github-copilot"`) to hide every model from that provider, or `"provider:model"` (`"github-copilot:gpt-5.5-copilot"`) to hide a single model. Hidden models stay usable via config defaults or session resume — they're just removed from the picker.
 
 ### Core tools
 
