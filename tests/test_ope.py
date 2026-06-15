@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import pytest
@@ -17,7 +18,8 @@ def test_ope_get_git_root_dir(tmp_path: Path):
 
 
 def test_ope_get_bash_dir_win(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(ope, "_IS_WINDOWS", True)
+    if sys.platform != "win32":
+        pytest.skip("test for Windows")
     bin_dir = tmp_path / "Git" / "bin"
     bin_dir.mkdir(parents=True)
     bash_path = bin_dir / "bash.exe"
