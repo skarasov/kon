@@ -22,7 +22,7 @@ def test_pu_get_bash_dir_win(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     bin_dir.mkdir(parents=True)
     bash_path = bin_dir / "bash.exe"
     bash_path.write_text("", encoding="utf-8")
-    monkeypatch.setenv("PROGRAMFILES", str(tmp_path))
+    monkeypatch.setenv("ProgramFiles", str(tmp_path))
     assert pu.get_bash_dir() == tmp_path.as_posix() + "/Git/bin/bash.exe"
 
 
